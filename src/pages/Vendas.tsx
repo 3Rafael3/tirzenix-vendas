@@ -60,6 +60,13 @@ export default function Vendas() {
       params.delete("new");
       setParams(params, { replace: true });
     }
+    // Pré-filtro por cliente vindo da página Clientes
+    const cli = params.get("cliente");
+    if (cli) {
+      setQuery(cli);
+      params.delete("cliente");
+      setParams(params, { replace: true });
+    }
   }, [params, setParams]);
 
   const filtered = useMemo(() => {

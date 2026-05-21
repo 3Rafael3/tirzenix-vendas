@@ -16,6 +16,7 @@ import {
   Boxes,
   Wallet,
   AlertTriangle,
+  type LucideIcon,
 } from "lucide-react";
 import {
   Area,
@@ -88,7 +89,12 @@ export default function Dashboard() {
       if (s.status === "Pago") paidCount += 1;
     }
     const margin = revenue ? profit / revenue : 0;
+    const netMargin = netRevenue ? netProfit / netRevenue : 0;
     const avgTicket = sales.length ? revenue / sales.length : 0;
+    // Vendas com prejuízo (lucro líquido < 0)
+    const lossSales = sales.filter((s) => getSaleFinancials(s).netProfit < 0).length;
+    // Vendas no mês
+    const monthSales = sales.filter((s) => monthKey(s.date) === monthKey(todayISO())).length;
 
     const thisMonth = monthKey(todayISO());
     const monthRevenue = sales
@@ -132,6 +138,9 @@ export default function Dashboard() {
       netProfit,
       totalFees,
       margin,
+      netMargin,
+      lossSales,
+      monthSales,
       receivable,
       monthRevenue,
       salesCount: sales.length,
@@ -252,6 +261,77 @@ export default function Dashboard() {
         <Kpi icon={TrendingUp} tone="emerald" label="Lucro líquido" value={stats.netProfit} formatter={formatBRL} sub={`Bruto ${formatBRL(stats.profit)}`} />
         <Kpi icon={CircleDollarSign} tone="ink" label="Custo total" value={stats.cost} formatter={formatBRL} sub={`Ticket ${formatBRL(stats.avgTicket)}`} />
         <Kpi icon={Hourglass} tone="amber" label="A receber" value={stats.receivable} formatter={formatBRL} sub="Pendente + Parcelado" />
+      </motion.div>
+
+      {/* Saúde financeira — destaque da margem */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15, duration: 0.45 }}
+        className="card p-6 mt-4 relative overflow-hidden"
+      >
+        <div className="absolute -top-16 -right-16 size-56 rounded-full bg-gold-700/15 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-12 -left-8 size-40 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+        <div className="relative grid grid-cols-1 lg:grid-cols-4 gap-5 items-center">
+          {/* Bloco principal: margem líquida grande */}
+          <div className="lg:col-span-1">
+            <div className="flex items-center gap-2 text-gold-300">
+              <Percent size={16} />
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em]">
+                Margem líquida geral
+              </p>
+            </div>
+            <p
+              className={`font-display text-4xl lg:text-5xl font-bold mt-2 tabular-nums tracking-tight-display ${
+                stats.netMargin < 0
+                  ? "text-rose-300"
+                  : stats.netMargin >= 0.15
+                  ? "text-emerald-300"
+                  : "text-gold-300"
+              }`}
+            >
+              <AnimatedNumber
+                value={stats.netMargin * 100}
+                format={(v) => `${v.toFixed(1)}%`}
+              />
+            </p>
+            <p className="text-xs text-silver-400 mt-1">
+              {stats.netRevenue > 0
+                ? `${formatBRL(stats.netProfit)} sobre ${formatBRL(stats.netRevenue)} líquido`
+                : "sem vendas ainda"}
+            </p>
+          </div>
+
+          {/* Sub-stats */}
+          <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <HealthStat
+              label="Margem bruta"
+              value={formatPct(stats.margin)}
+              icon={TrendingUp}
+              tone={stats.margin >= 0 ? "emerald" : "rose"}
+            />
+            <HealthStat
+              label="Vendas no mês"
+              value={formatNum(stats.monthSales)}
+              icon={CheckCircle2}
+              sub={`de ${formatNum(stats.salesCount)} total`}
+            />
+            <HealthStat
+              label="Vendas no prejuízo"
+              value={formatNum(stats.lossSales)}
+              icon={AlertTriangle}
+              tone={stats.lossSales > 0 ? "rose" : "emerald"}
+              sub={stats.lossSales > 0 ? "revisar" : "tudo ok"}
+              pulse={stats.lossSales > 0}
+            />
+            <HealthStat
+              label="Taxas pagas"
+              value={formatBRL(stats.totalFees)}
+              icon={CircleDollarSign}
+              tone={stats.totalFees > 0 ? "amber" : "silver"}
+            />
+          </div>
+        </div>
       </motion.div>
 
       {/* Linha 2: Chart + Meta */}
@@ -554,6 +634,61 @@ function Kpi({
         </p>
         {sub && <p className="text-xs text-silver-500 mt-1 truncate">{sub}</p>}
       </div>
+    </motion.div>
+  );
+}
+
+function HealthStat({
+  label,
+  value,
+  icon: Icon,
+  tone = "silver",
+  sub,
+  pulse,
+}: {
+  label: string;
+  value: string;
+  icon: LucideIcon;
+  tone?: "emerald" | "rose" | "amber" | "silver" | "gold";
+  sub?: string;
+  pulse?: boolean;
+}) {
+  const t =
+    tone === "emerald"
+      ? "text-emerald-300"
+      : tone === "rose"
+      ? "text-rose-300"
+      : tone === "amber"
+      ? "text-amber-300"
+      : tone === "gold"
+      ? "text-gold-300"
+      : "text-silver-100";
+  const iconBg =
+    tone === "emerald"
+      ? "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30"
+      : tone === "rose"
+      ? "bg-rose-500/15 text-rose-300 ring-rose-500/40"
+      : tone === "amber"
+      ? "bg-amber-500/15 text-amber-300 ring-amber-500/30"
+      : "bg-gold-500/15 text-gold-300 ring-gold-700/30";
+  return (
+    <motion.div
+      animate={pulse ? { boxShadow: ["0 0 0 0 rgba(244,63,94,0)", "0 0 16px 2px rgba(244,63,94,0.18)", "0 0 0 0 rgba(244,63,94,0)"] } : {}}
+      transition={pulse ? { duration: 2, repeat: Infinity } : {}}
+      className="rounded-xl border border-gold-900/25 bg-ink-950/50 p-3.5 flex items-center justify-between gap-3"
+    >
+      <div className="min-w-0">
+        <p className="text-[9px] uppercase tracking-[0.16em] text-silver-500 font-semibold">
+          {label}
+        </p>
+        <p className={cn("text-lg font-bold mt-0.5 tabular-nums font-mono truncate", t)}>
+          {value}
+        </p>
+        {sub && <p className="text-[10px] text-silver-500 mt-0.5 truncate">{sub}</p>}
+      </div>
+      <span className={cn("size-8 rounded-lg grid place-items-center ring-1 shrink-0", iconBg)}>
+        <Icon size={14} />
+      </span>
     </motion.div>
   );
 }
