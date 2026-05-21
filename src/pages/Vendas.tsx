@@ -13,6 +13,15 @@ import {
   Wallet,
   CreditCard,
   Sparkles,
+  ChevronUp,
+  ChevronDown,
+  X,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  XCircle,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { useStore, getSaleFinancials } from "@/store/useStore";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -22,11 +31,11 @@ import { SaleForm } from "@/components/forms/SaleForm";
 import { SaleDetail } from "@/components/sales/SaleDetail";
 import { toast } from "@/components/ui/Toast";
 import { Empty } from "@/components/ui/Empty";
-import { formatBRL, formatDate, formatNum, monthKey, todayISO } from "@/lib/utils";
+import { formatBRL, formatDate, formatNum, formatPct, monthKey, todayISO } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import type { Sale } from "@/lib/types";
+import type { Sale, SaleStatus } from "@/lib/types";
 
-type QuickFilter = "all" | "thisMonth" | "paid" | "pending" | "card" | "withSignal";
+type QuickFilter = "all" | "thisMonth" | "paid" | "pending" | "card" | "withSignal" | "loss";
 
 const quickFilters: { id: QuickFilter; label: string }[] = [
   { id: "all", label: "Todas" },
@@ -35,7 +44,11 @@ const quickFilters: { id: QuickFilter; label: string }[] = [
   { id: "pending", label: "Pendentes" },
   { id: "card", label: "No cartão" },
   { id: "withSignal", label: "Com sinal" },
+  { id: "loss", label: "Prejuízo" },
 ];
+
+type SortField = "date" | "client" | "product" | "gross" | "net" | "profit" | "margin";
+type SortDir = "asc" | "desc";
 
 export default function Vendas() {
   const sales = useStore((s) => s.sales);
@@ -51,7 +64,11 @@ export default function Vendas() {
   const [editing, setEditing] = useState<Sale | null>(null);
   const [open, setOpen] = useState(false);
   const [confirmDel, setConfirmDel] = useState<Sale | null>(null);
+  const [confirmBulkDel, setConfirmBulkDel] = useState(false);
   const [detail, setDetail] = useState<Sale | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [sortBy, setSortBy] = useState<SortField>("date");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   useEffect(() => {
     if (params.get("new") === "1") {
@@ -60,7 +77,6 @@ export default function Vendas() {
       params.delete("new");
       setParams(params, { replace: true });
     }
-    // Pré-filtro por cliente vindo da página Clientes
     const cli = params.get("cliente");
     if (cli) {
       setQuery(cli);
@@ -72,42 +88,145 @@ export default function Vendas() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const thisMonth = monthKey(todayISO());
-    return sales
-      .filter((s) => {
-        if (statusFilter && s.status !== statusFilter) return false;
-        if (quick === "thisMonth" && monthKey(s.date) !== thisMonth) return false;
-        if (quick === "paid" && s.status !== "Pago") return false;
-        if (quick === "pending" && s.status !== "Pendente" && s.status !== "Parcelado") return false;
-        if (quick === "card" && s.payment !== "Cartão Crédito") return false;
-        if (quick === "withSignal" && !s.signal?.amount) return false;
-        if (!q) return true;
-        return (
-          s.client.toLowerCase().includes(q) ||
-          s.product.toLowerCase().includes(q) ||
-          (s.productVariant || "").toLowerCase().includes(q) ||
-          s.contact.toLowerCase().includes(q) ||
-          s.dosage.toLowerCase().includes(q)
-        );
-      })
-      .sort((a, b) => b.date.localeCompare(a.date));
+    return sales.filter((s) => {
+      if (statusFilter && s.status !== statusFilter) return false;
+      if (quick === "thisMonth" && monthKey(s.date) !== thisMonth) return false;
+      if (quick === "paid" && s.status !== "Pago") return false;
+      if (quick === "pending" && s.status !== "Pendente" && s.status !== "Parcelado") return false;
+      if (quick === "card" && s.payment !== "Cartão Crédito") return false;
+      if (quick === "withSignal" && !s.signal?.amount) return false;
+      if (quick === "loss" && getSaleFinancials(s).netProfit >= 0) return false;
+      if (!q) return true;
+      return (
+        s.client.toLowerCase().includes(q) ||
+        s.product.toLowerCase().includes(q) ||
+        ((s as any).productVariant || "").toLowerCase().includes(q) ||
+        s.contact.toLowerCase().includes(q) ||
+        s.dosage.toLowerCase().includes(q)
+      );
+    });
   }, [sales, query, statusFilter, quick]);
+
+  // Sort
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    arr.sort((a, b) => {
+      const fa = getSaleFinancials(a);
+      const fb = getSaleFinancials(b);
+      let cmp = 0;
+      switch (sortBy) {
+        case "date":
+          cmp = a.date.localeCompare(b.date);
+          break;
+        case "client":
+          cmp = a.client.localeCompare(b.client, "pt-BR");
+          break;
+        case "product":
+          cmp = a.product.localeCompare(b.product, "pt-BR");
+          break;
+        case "gross":
+          cmp = fa.totalSale - fb.totalSale;
+          break;
+        case "net":
+          cmp = fa.netReceived - fb.netReceived;
+          break;
+        case "profit":
+          cmp = fa.netProfit - fb.netProfit;
+          break;
+        case "margin":
+          cmp = fa.netMargin - fb.netMargin;
+          break;
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+    return arr;
+  }, [filtered, sortBy, sortDir]);
 
   const totals = useMemo(() => {
     let gross = 0,
       net = 0,
       profit = 0,
       fees = 0,
+      cost = 0,
       units = 0;
-    for (const s of filtered) {
+    for (const s of sorted) {
       const f = getSaleFinancials(s);
       gross += f.totalSale;
       net += f.netReceived;
       profit += f.netProfit;
       fees += f.totalFees;
+      cost += f.totalPurchase;
       units += s.qty;
     }
-    return { gross, net, profit, fees, units };
-  }, [filtered]);
+    return { gross, net, profit, fees, cost, units };
+  }, [sorted]);
+
+  // Stats dos selecionados
+  const selStats = useMemo(() => {
+    const items = sorted.filter((s) => selected.has(s.id));
+    let gross = 0,
+      net = 0,
+      profit = 0,
+      fees = 0,
+      cost = 0,
+      units = 0,
+      withSignal = 0,
+      onCard = 0,
+      paid = 0,
+      pending = 0;
+    for (const s of items) {
+      const f = getSaleFinancials(s);
+      gross += f.totalSale;
+      net += f.netReceived;
+      profit += f.netProfit;
+      fees += f.totalFees;
+      cost += f.totalPurchase;
+      units += s.qty;
+      if (s.signal?.amount) withSignal += 1;
+      if (s.payment === "Cartão Crédito") onCard += 1;
+      if (s.status === "Pago") paid += 1;
+      if (s.status === "Pendente" || s.status === "Parcelado") pending += 1;
+    }
+    return {
+      count: items.length,
+      gross,
+      net,
+      profit,
+      fees,
+      cost,
+      units,
+      withSignal,
+      onCard,
+      paid,
+      pending,
+      margin: net ? profit / net : 0,
+      ticketAvg: items.length ? gross / items.length : 0,
+      items,
+    };
+  }, [sorted, selected]);
+
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  function toggleAll() {
+    if (selected.size === sorted.length) setSelected(new Set());
+    else setSelected(new Set(sorted.map((s) => s.id)));
+  }
+  const allSelected = selected.size > 0 && selected.size === sorted.length;
+  const someSelected = selected.size > 0 && selected.size < sorted.length;
+
+  function setSort(field: SortField) {
+    if (sortBy === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else {
+      setSortBy(field);
+      setSortDir("desc");
+    }
+  }
 
   function handleSave(data: Omit<Sale, "id">) {
     if (editing) {
@@ -121,22 +240,31 @@ export default function Vendas() {
     setEditing(null);
   }
 
-  function handleExport() {
+  function bulkSetStatus(status: SaleStatus) {
+    selStats.items.forEach((s) => updateSale(s.id, { status }));
+    toast.success(`${selStats.items.length} venda(s) marcadas como "${status}"`);
+  }
+
+  function bulkDelete() {
+    selStats.items.forEach((s) => deleteSale(s.id));
+    toast.success(`${selStats.items.length} venda(s) excluída(s)`);
+    setSelected(new Set());
+    setConfirmBulkDel(false);
+  }
+
+  function exportRows(rowsToExport: Sale[], filenamePrefix: string) {
     const headers = [
       "Data", "Produto", "Dosagem", "Cliente", "Contato", "Qtd",
-      "Subitem", "Ampolas/Seringas Estoque", "Caixas Fechadas", "Preço Compra", "Preço Venda", "Total Bruto",
+      "Preço Compra", "Preço Venda", "Total Bruto",
       "Sinal", "Método Sinal", "Pagamento", "Parcelas",
       "Taxa Cartão", "Taxa Parcelamento", "Outras Taxas", "Total Taxas",
       "Valor Líquido", "Custo", "Lucro Líquido", "Margem Líquida",
       "Status", "Mês", "Observações",
     ];
-    const rows = filtered.map((s) => {
+    const rows = rowsToExport.map((s) => {
       const f = getSaleFinancials(s);
       return [
         s.date, s.product, s.dosage, s.client, s.contact, s.qty,
-        s.productVariant || "",
-        s.productVariantUnits ? s.qty * s.productVariantUnits : "",
-        (s.productVariantUnits || 1) >= 4 ? s.qty : 0,
         s.purchasePrice, s.salePrice, f.totalSale,
         f.signalAmount, f.signalMethod, s.payment, f.installments,
         f.cardFee, f.installmentFee, f.otherFees, f.totalFees,
@@ -155,20 +283,24 @@ export default function Vendas() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `tirzenix-vendas-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `${filenamePrefix}-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success("CSV exportado");
   }
 
   return (
-    <>
+    <div className={cn(selected.size > 0 && "pb-40 lg:pb-32")}>
       <PageHeader
         title="Vendas"
-        subtitle="Registro completo com sinal, parcelamento, taxas e valor líquido"
+        subtitle="Registro completo · seleção múltipla · totais e margem ao vivo"
         actions={
           <>
-            <button className="btn-secondary" onClick={handleExport} disabled={filtered.length === 0}>
+            <button
+              className="btn-secondary"
+              onClick={() => exportRows(sorted, "tirzenix-vendas")}
+              disabled={sorted.length === 0}
+            >
               <Download size={16} /> Exportar
             </button>
             <button
@@ -186,14 +318,14 @@ export default function Vendas() {
 
       {/* KPIs filtrados */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
-        <SummaryTile label="Resultados" value={formatNum(filtered.length)} />
+        <SummaryTile label="Resultados" value={formatNum(sorted.length)} />
         <SummaryTile label="Bruto" value={formatBRL(totals.gross)} tone="silver" />
         <SummaryTile label="Taxas pagas" value={formatBRL(totals.fees)} tone="rose" />
         <SummaryTile label="Líquido recebido" value={formatBRL(totals.net)} tone="gold" />
         <SummaryTile label="Lucro líquido" value={formatBRL(totals.profit)} tone="emerald" />
       </div>
 
-      {/* Filtros rápidos */}
+      {/* Filtros */}
       <div className="card p-3 mb-4 flex flex-col gap-2.5">
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
@@ -227,9 +359,7 @@ export default function Vendas() {
               onClick={() => setQuick(qf.id)}
               className={cn(
                 "relative px-3 py-1 rounded-lg text-[11px] font-medium tracking-tight transition",
-                quick === qf.id
-                  ? "text-gold-100"
-                  : "text-silver-400 hover:text-silver-100"
+                quick === qf.id ? "text-gold-100" : "text-silver-400 hover:text-silver-100"
               )}
             >
               {quick === qf.id && (
@@ -251,22 +381,30 @@ export default function Vendas() {
           <table className="w-full text-sm">
             <thead className="bg-ink-900/80 backdrop-blur sticky top-0 z-10">
               <tr className="text-left text-[10px] uppercase tracking-[0.14em] text-silver-500">
-                <th className="px-4 py-3 font-semibold">Data</th>
-                <th className="px-4 py-3 font-semibold">Cliente</th>
-                <th className="px-4 py-3 font-semibold">Produto</th>
+                <th className="px-3 py-3 w-10">
+                  <Checkbox
+                    checked={allSelected}
+                    indeterminate={someSelected}
+                    onChange={toggleAll}
+                    aria-label="Selecionar todas"
+                  />
+                </th>
+                <Th field="date" sortBy={sortBy} sortDir={sortDir} onClick={setSort}>Data</Th>
+                <Th field="client" sortBy={sortBy} sortDir={sortDir} onClick={setSort}>Cliente</Th>
+                <Th field="product" sortBy={sortBy} sortDir={sortDir} onClick={setSort}>Produto</Th>
                 <th className="px-4 py-3 font-semibold">Pagamento</th>
-                <th className="px-4 py-3 font-semibold text-right">Bruto</th>
-                <th className="px-4 py-3 font-semibold text-right">Líquido</th>
-                <th className="px-4 py-3 font-semibold text-right">Lucro</th>
+                <Th field="gross" sortBy={sortBy} sortDir={sortDir} onClick={setSort} align="right">Bruto</Th>
+                <Th field="net" sortBy={sortBy} sortDir={sortDir} onClick={setSort} align="right">Líquido</Th>
+                <Th field="profit" sortBy={sortBy} sortDir={sortDir} onClick={setSort} align="right">Lucro</Th>
                 <th className="px-4 py-3 font-semibold">Status</th>
                 <th className="px-4 py-3 font-semibold text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gold-900/15">
               <AnimatePresence initial={false}>
-                {filtered.length === 0 && (
+                {sorted.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="p-0">
+                    <td colSpan={10} className="p-0">
                       <Empty
                         icon={ShoppingCart}
                         title="Nenhuma venda registrada"
@@ -292,8 +430,10 @@ export default function Vendas() {
                     </td>
                   </tr>
                 )}
-                {filtered.map((s, i) => {
+                {sorted.map((s, i) => {
                   const f = getSaleFinancials(s);
+                  const isSelected = selected.has(s.id);
+                  const isLoss = f.netProfit < 0;
                   return (
                     <motion.tr
                       key={s.id}
@@ -301,28 +441,31 @@ export default function Vendas() {
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -6 }}
-                      transition={{ duration: 0.25, delay: Math.min(i * 0.02, 0.2) }}
-                      className="hover:bg-gold-500/[0.04] transition group cursor-pointer"
-                      onClick={() => setDetail(s)}
+                      transition={{ duration: 0.22, delay: Math.min(i * 0.015, 0.15) }}
+                      className={cn(
+                        "transition group cursor-pointer",
+                        isSelected ? "bg-gold-500/[0.08]" : "hover:bg-gold-500/[0.04]"
+                      )}
+                      onClick={() => toggleOne(s.id)}
                     >
-                      <td className="px-4 py-3 whitespace-nowrap text-silver-300">
+                      <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox checked={isSelected} onChange={() => toggleOne(s.id)} />
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-silver-300 font-mono text-xs tabular-nums">
                         {formatDate(s.date)}
                       </td>
                       <td className="px-4 py-3">
                         <div className="font-medium text-silver-50">{s.client}</div>
-                        <div className="text-xs text-silver-500">{s.contact}</div>
+                        <div className="text-xs text-silver-500 font-mono">{s.contact}</div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="text-silver-100">{s.product}</div>
-                        {s.productVariant && (
-                          <div className="text-[11px] text-gold-400 mt-0.5">{s.productVariant}</div>
-                        )}
                         <div className="text-xs text-silver-500">
                           {s.dosage} · {s.qty} un.
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           {s.payment === "Cartão Crédito" ? (
                             <CreditCard size={12} className="text-gold-400" />
                           ) : (
@@ -334,9 +477,14 @@ export default function Vendas() {
                               {f.installments}×
                             </span>
                           )}
+                          {isLoss && (
+                            <span className="text-[10px] font-bold tracking-wider text-rose-300 bg-rose-500/15 ring-1 ring-rose-500/40 px-1 rounded">
+                              PREJ
+                            </span>
+                          )}
                         </div>
                         {f.signalAmount > 0 && (
-                          <div className="flex items-center gap-1 mt-0.5 text-[10px] text-silver-500">
+                          <div className="flex items-center gap-1 mt-0.5 text-[10px] text-silver-500 font-mono">
                             <Sparkles size={9} className="text-gold-400" />
                             sinal {formatBRL(f.signalAmount)} ({f.signalMethod})
                           </div>
@@ -353,8 +501,20 @@ export default function Vendas() {
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right font-mono font-medium text-emerald-300 tabular-nums">
+                      <td
+                        className={cn(
+                          "px-4 py-3 text-right font-mono font-medium tabular-nums",
+                          f.netProfit > 0
+                            ? "text-emerald-300"
+                            : f.netProfit < 0
+                            ? "text-rose-300"
+                            : "text-silver-400"
+                        )}
+                      >
                         {formatBRL(f.netProfit)}
+                        <div className="text-[10px] text-silver-500 font-normal">
+                          {formatPct(f.netMargin)}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <StatusBadge value={s.status} />
@@ -397,6 +557,138 @@ export default function Vendas() {
         </div>
       </div>
 
+      {/* Floating action bar */}
+      <AnimatePresence>
+        {selected.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 320, damping: 28 }}
+            className="fixed inset-x-3 bottom-3 lg:inset-x-auto lg:left-1/2 lg:bottom-4 lg:-translate-x-1/2 lg:w-auto lg:max-w-[min(80rem,calc(100vw-2rem))] z-40"
+          >
+            <div className="card-gold bg-ink-900/95 backdrop-blur-xl px-4 py-3 shadow-glow flex flex-col lg:flex-row lg:items-center gap-3 max-h-[80vh] overflow-y-auto">
+              <div className="flex items-start lg:items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => setSelected(new Set())}
+                    className="size-7 rounded-lg bg-gold-500/15 text-gold-300 hover:bg-gold-500/25 grid place-items-center transition"
+                    title="Limpar seleção"
+                  >
+                    <X size={14} />
+                  </button>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.16em] text-gold-400 font-semibold">
+                      Selecionadas
+                    </p>
+                    <p className="text-sm font-bold text-silver-50 tabular-nums">
+                      {selStats.count}
+                      <span className="text-silver-500 text-xs font-normal ml-1">
+                        ({selStats.units} un.)
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                <span className="hidden lg:block w-px h-10 bg-gold-900/40 shrink-0" />
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-x-4 gap-y-2 flex-1 min-w-0">
+                  <SumStat label="Bruto" value={formatBRL(selStats.gross)} />
+                  <SumStat label="Custo" value={formatBRL(selStats.cost)} tone="silver" />
+                  <SumStat label="Taxas" value={formatBRL(selStats.fees)} tone="rose" />
+                  <SumStat label="Líquido" value={formatBRL(selStats.net)} tone="gold" />
+                  <SumStat
+                    label="Lucro líq."
+                    value={formatBRL(selStats.profit)}
+                    tone={selStats.profit >= 0 ? "emerald" : "rose"}
+                  />
+                  <SumStat
+                    label="Margem"
+                    value={formatPct(selStats.margin)}
+                    tone={selStats.margin >= 0 ? "gold" : "rose"}
+                  />
+                </div>
+              </div>
+
+              <div className="lg:ml-auto flex flex-wrap items-center gap-1.5 shrink-0 border-t border-gold-900/30 pt-3 lg:border-0 lg:pt-0">
+                <BulkBtn
+                  icon={CheckCircle2}
+                  label="Pago"
+                  tone="emerald"
+                  onClick={() => bulkSetStatus("Pago")}
+                  disabled={selStats.paid === selStats.count}
+                  title="Marcar como Pago"
+                />
+                <BulkBtn
+                  icon={Clock}
+                  label="Pendente"
+                  tone="gold"
+                  onClick={() => bulkSetStatus("Pendente")}
+                  title="Marcar como Pendente"
+                />
+                <BulkBtn
+                  icon={AlertCircle}
+                  label="Parcelado"
+                  tone="sky"
+                  onClick={() => bulkSetStatus("Parcelado")}
+                  title="Marcar como Parcelado"
+                />
+                <BulkBtn
+                  icon={XCircle}
+                  label="Cancelar"
+                  tone="silver"
+                  onClick={() => bulkSetStatus("Cancelado")}
+                  title="Marcar como Cancelado"
+                />
+                <span className="hidden lg:block w-px h-6 bg-gold-900/40 mx-1" />
+                <button
+                  className="btn-secondary text-xs"
+                  onClick={() => exportRows(selStats.items, "tirzenix-vendas-selecionadas")}
+                >
+                  <Download size={13} /> CSV
+                </button>
+                <button
+                  className="btn-danger text-xs"
+                  onClick={() => setConfirmBulkDel(true)}
+                >
+                  <Trash2 size={13} /> Excluir
+                </button>
+              </div>
+            </div>
+
+            {/* Indicadores extras: cartão / sinal / prejuízo dos selecionados */}
+            {(selStats.onCard > 0 || selStats.withSignal > 0 || selStats.profit < 0) && (
+              <div className="card-gold bg-ink-950/80 backdrop-blur-xl mt-2 px-4 py-2 flex flex-wrap items-center gap-3 text-[11px] text-silver-300">
+                {selStats.onCard > 0 && (
+                  <span className="inline-flex items-center gap-1">
+                    <CreditCard size={11} className="text-gold-400" />
+                    {selStats.onCard} no cartão
+                  </span>
+                )}
+                {selStats.withSignal > 0 && (
+                  <span className="inline-flex items-center gap-1">
+                    <Sparkles size={11} className="text-gold-400" />
+                    {selStats.withSignal} com sinal
+                  </span>
+                )}
+                {selStats.profit < 0 ? (
+                  <span className="inline-flex items-center gap-1 text-rose-300">
+                    <TrendingDown size={11} />
+                    Soma no prejuízo
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-emerald-300">
+                    <TrendingUp size={11} />
+                    Soma no lucro
+                  </span>
+                )}
+                <span className="text-silver-500 ml-auto">
+                  Ticket médio: <strong className="text-silver-100 font-mono">{formatBRL(selStats.ticketAvg)}</strong>
+                </span>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Modal Detalhe */}
       <Modal
         open={!!detail}
@@ -426,7 +718,6 @@ export default function Vendas() {
         {detail && <SaleDetail sale={detail} />}
       </Modal>
 
-      {/* Modal Form */}
       <Modal
         open={open}
         onClose={() => {
@@ -447,7 +738,6 @@ export default function Vendas() {
         />
       </Modal>
 
-      {/* Modal Confirm Delete */}
       <Modal
         open={!!confirmDel}
         onClose={() => setConfirmDel(null)}
@@ -475,13 +765,35 @@ export default function Vendas() {
       >
         <p className="text-sm text-silver-300">
           Excluir a venda de <strong className="text-gold-300">{confirmDel?.client}</strong> em{" "}
-          <strong className="text-gold-300">{formatDate(confirmDel?.date)}</strong>? Se a venda tinha vínculo com estoque, as unidades serão devolvidas.
+          <strong className="text-gold-300">{formatDate(confirmDel?.date)}</strong>?
         </p>
       </Modal>
-    </>
+
+      <Modal
+        open={confirmBulkDel}
+        onClose={() => setConfirmBulkDel(false)}
+        title="Excluir selecionadas"
+        size="sm"
+        footer={
+          <>
+            <button className="btn-secondary" onClick={() => setConfirmBulkDel(false)}>
+              Cancelar
+            </button>
+            <button className="btn-danger" onClick={bulkDelete}>
+              Excluir {selStats.count}
+            </button>
+          </>
+        }
+      >
+        <p className="text-sm text-silver-300">
+          Excluir <strong className="text-gold-300">{selStats.count}</strong> venda(s) selecionada(s)? Esta ação não pode ser desfeita. Se houver vínculo com estoque, as unidades serão devolvidas.
+        </p>
+      </Modal>
+    </div>
   );
 }
 
+// ──────────────────────────────────────
 function SummaryTile({
   label,
   value,
@@ -512,5 +824,169 @@ function SummaryTile({
       </p>
       <p className={cn("font-display text-xl font-bold mt-1 tabular-nums font-mono", t)}>{value}</p>
     </motion.div>
+  );
+}
+
+function Checkbox({
+  checked,
+  indeterminate,
+  onChange,
+  ...rest
+}: {
+  checked: boolean;
+  indeterminate?: boolean;
+  onChange: () => void;
+} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "checked" | "onChange" | "type">) {
+  return (
+    <label className="inline-flex items-center cursor-pointer">
+      <input
+        type="checkbox"
+        checked={checked}
+        ref={(el) => el && (el.indeterminate = !!indeterminate && !checked)}
+        onChange={onChange}
+        className="peer sr-only"
+        {...rest}
+      />
+      <span
+        className={cn(
+          "size-4 rounded border transition flex items-center justify-center",
+          checked
+            ? "bg-gold-gradient border-gold-600 shadow-glow-sm"
+            : indeterminate
+            ? "bg-gold-500/30 border-gold-500/60"
+            : "bg-ink-900 border-ink-600 hover:border-gold-700"
+        )}
+      >
+        {checked && (
+          <svg
+            className="size-3 text-ink-950"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="3.5,8.5 6.5,11.5 12.5,5" />
+          </svg>
+        )}
+        {indeterminate && !checked && (
+          <span className="block w-2 h-0.5 bg-gold-100 rounded" />
+        )}
+      </span>
+    </label>
+  );
+}
+
+function Th({
+  field,
+  sortBy,
+  sortDir,
+  onClick,
+  align = "left",
+  children,
+}: {
+  field: SortField;
+  sortBy: SortField;
+  sortDir: SortDir;
+  onClick: (f: SortField) => void;
+  align?: "left" | "right";
+  children: React.ReactNode;
+}) {
+  const active = field === sortBy;
+  return (
+    <th
+      className={cn(
+        "px-4 py-3 font-semibold select-none",
+        align === "right" && "text-right"
+      )}
+    >
+      <button
+        type="button"
+        onClick={() => onClick(field)}
+        className={cn(
+          "inline-flex items-center gap-1 transition hover:text-gold-300",
+          active ? "text-gold-300" : "text-silver-500",
+          align === "right" && "flex-row-reverse"
+        )}
+      >
+        {children}
+        <span className="inline-flex flex-col items-center justify-center -my-1">
+          {active ? (
+            sortDir === "asc" ? <ChevronUp size={11} /> : <ChevronDown size={11} />
+          ) : (
+            <ChevronDown size={11} className="opacity-30" />
+          )}
+        </span>
+      </button>
+    </th>
+  );
+}
+
+function SumStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "emerald" | "rose" | "silver" | "gold";
+}) {
+  const t =
+    tone === "emerald"
+      ? "text-emerald-300"
+      : tone === "rose"
+      ? "text-rose-300"
+      : tone === "silver"
+      ? "text-silver-200"
+      : tone === "gold"
+      ? "text-gold-300"
+      : "text-silver-50";
+  return (
+    <div className="min-w-0">
+      <p className="text-[9px] uppercase tracking-[0.16em] text-silver-500 font-semibold truncate">
+        {label}
+      </p>
+      <p className={cn("text-sm font-bold tabular-nums font-mono mt-0.5 truncate", t)}>{value}</p>
+    </div>
+  );
+}
+
+function BulkBtn({
+  icon: Icon,
+  label,
+  tone,
+  onClick,
+  disabled,
+  title,
+}: {
+  icon: React.ComponentType<any>;
+  label: string;
+  tone: "emerald" | "gold" | "sky" | "silver" | "rose";
+  onClick: () => void;
+  disabled?: boolean;
+  title?: string;
+}) {
+  const tones = {
+    emerald: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/40 hover:bg-emerald-500/25",
+    gold: "bg-gold-500/15 text-gold-300 ring-gold-500/40 hover:bg-gold-500/25",
+    sky: "bg-sky-500/15 text-sky-300 ring-sky-500/40 hover:bg-sky-500/25",
+    silver: "bg-silver-500/15 text-silver-200 ring-silver-500/40 hover:bg-silver-500/25",
+    rose: "bg-rose-500/15 text-rose-300 ring-rose-500/40 hover:bg-rose-500/25",
+  };
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className={cn(
+        "inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold ring-1 transition disabled:opacity-40 disabled:cursor-not-allowed",
+        tones[tone]
+      )}
+    >
+      <Icon size={12} />
+      {label}
+    </button>
   );
 }

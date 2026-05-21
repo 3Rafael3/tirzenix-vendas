@@ -319,7 +319,7 @@ export default function Clientes() {
   }
 
   return (
-    <>
+    <div className={cn(selected.size > 0 && "pb-40 lg:pb-32")}>
       <PageHeader
         title="Clientes"
         subtitle="Cadastro + histórico consolidado · seleção múltipla · margens e prejuízos"
@@ -648,11 +648,11 @@ export default function Clientes() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
-            className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 max-w-4xl w-[calc(100%-2rem)]"
+            className="fixed inset-x-3 bottom-3 lg:inset-x-auto lg:left-1/2 lg:bottom-4 lg:-translate-x-1/2 lg:w-auto lg:max-w-[min(72rem,calc(100vw-2rem))] z-40"
           >
-            <div className="card-gold bg-ink-900/95 backdrop-blur-xl px-4 py-3 shadow-glow flex flex-col lg:flex-row lg:items-center gap-3">
-              <div className="flex items-center gap-3 lg:gap-5 flex-wrap">
-                <div className="flex items-center gap-2">
+            <div className="card-gold bg-ink-900/95 backdrop-blur-xl px-4 py-3 shadow-glow flex flex-col lg:flex-row lg:items-center gap-3 max-h-[80vh] overflow-y-auto">
+              <div className="flex items-start lg:items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={clearSelection}
                     className="size-7 rounded-lg bg-gold-500/15 text-gold-300 hover:bg-gold-500/25 grid place-items-center transition"
@@ -672,21 +672,23 @@ export default function Clientes() {
                     </p>
                   </div>
                 </div>
-                <span className="hidden lg:block w-px h-8 bg-gold-900/40" />
-                <SumStat label="Bruto" value={formatBRL(selStats.revenue)} />
-                <SumStat label="Custo" value={formatBRL(selStats.cost)} tone="silver" />
-                <SumStat
-                  label="Lucro líq."
-                  value={formatBRL(selStats.profit)}
-                  tone={selStats.profit >= 0 ? "emerald" : "rose"}
-                />
-                <SumStat
-                  label="Margem"
-                  value={selStats.orders > 0 ? formatPct(selStats.margin) : "—"}
-                  tone={selStats.margin >= 0 ? "gold" : "rose"}
-                />
+                <span className="hidden lg:block w-px h-8 bg-gold-900/40 shrink-0" />
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 flex-1 min-w-0">
+                  <SumStat label="Bruto" value={formatBRL(selStats.revenue)} />
+                  <SumStat label="Custo" value={formatBRL(selStats.cost)} tone="silver" />
+                  <SumStat
+                    label="Lucro líq."
+                    value={formatBRL(selStats.profit)}
+                    tone={selStats.profit >= 0 ? "emerald" : "rose"}
+                  />
+                  <SumStat
+                    label="Margem"
+                    value={selStats.orders > 0 ? formatPct(selStats.margin) : "—"}
+                    tone={selStats.margin >= 0 ? "gold" : "rose"}
+                  />
+                </div>
               </div>
-              <div className="lg:ml-auto flex flex-wrap items-center gap-2">
+              <div className="lg:ml-auto flex flex-wrap items-center gap-2 shrink-0 border-t border-gold-900/30 pt-3 lg:border-0 lg:pt-0">
                 {selStats.count === 1 && (
                   <button className="btn-secondary text-xs" onClick={viewSalesOfFirstSelected}>
                     <ArrowRight size={13} /> Ver vendas
@@ -780,7 +782,7 @@ export default function Clientes() {
           Excluir <strong className="text-gold-300">{selStats.registeredCount}</strong> cliente(s) cadastrado(s)? As vendas associadas <strong>permanecem</strong>. "Sem cadastro" não podem ser excluídos.
         </p>
       </Modal>
-    </>
+    </div>
   );
 }
 
