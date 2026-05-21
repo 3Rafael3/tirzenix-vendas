@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tirzenix</title>
+    <!-- Redireciona para o index para que o React Router (BrowserRouter) cuide das rotas no GitHub Pages -->
+    <script>
+      (function () {
+        var l = window.location;
+        var pathSegments = l.pathname.split("/");
+        // Mantém o primeiro segmento (nome do repo) e joga o resto pra query
+        var base = pathSegments[1] ? "/" + pathSegments[1] + "/" : "/";
+        var subpath = pathSegments.slice(2).join("/");
+        l.replace(base + "?p=" + encodeURIComponent("/" + subpath) + l.hash);
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>

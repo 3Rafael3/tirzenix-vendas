@@ -1,0 +1,15 @@
+node_modules
+dist
+dist-ssr
+*.local
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.log
+_raw_data.json
+.env
+.env.local
+.env.*.local
+.claude/launch.json
+*.tsbuildinfo

@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <defs>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5b3f1f"/>
+      <stop offset="0.22" stop-color="#a07b4b"/>
+      <stop offset="0.42" stop-color="#e8c896"/>
+      <stop offset="0.55" stop-color="#fff4d6"/>
+      <stop offset="0.7" stop-color="#d4a574"/>
+      <stop offset="1" stop-color="#3a2912"/>
+    </linearGradient>
+    <radialGradient id="ringGlow" cx="0.78" cy="0.16" r="0.34">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="1"/>
+      <stop offset="0.5" stop-color="#fff4d6" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#fff4d6" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Dourado vertical (faces frontais do monograma) -->
+    <linearGradient id="goldFace" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbe6b6"/>
+      <stop offset="0.35" stop-color="#e8c896"/>
+      <stop offset="0.6" stop-color="#d4a574"/>
+      <stop offset="1" stop-color="#7a5530"/>
+    </linearGradient>
+    <linearGradient id="goldEdge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d4a574"/>
+      <stop offset="1" stop-color="#5b3f1f"/>
+    </linearGradient>
+    <linearGradient id="goldShine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff4d6"/>
+      <stop offset="1" stop-color="#d4a574"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fundo preto -->
+  <rect width="256" height="256" rx="56" fill="#0a0a0c"/>
+
+  <!-- Sombra interna sutil -->
+  <circle cx="128" cy="128" r="106" fill="none" stroke="#1a1209" stroke-width="6" opacity="0.6"/>
+
+  <!-- Anel dourado principal -->
+  <circle cx="128" cy="128" r="106" stroke="url(#ring)" stroke-width="3.2" fill="none"/>
+  <!-- Highlight no topo do anel (luz) -->
+  <circle cx="128" cy="128" r="106" stroke="url(#ringGlow)" stroke-width="4" fill="none" opacity="0.95"/>
+
+  <!-- ───── Monograma T-7 (faiel à arte) ───── -->
+  <!-- Asa esquerda do T (trapézio) -->
+  <path d="M 74 70 L 124 70 L 124 96 L 92 96 Z" fill="url(#goldFace)"/>
+  <path d="M 74 70 L 124 70 L 124 74 L 78 78 Z" fill="url(#goldShine)" opacity="0.85"/>
+
+  <!-- Asa direita do T -->
+  <path d="M 132 70 L 182 70 L 164 96 L 132 96 Z" fill="url(#goldFace)"/>
+  <path d="M 132 70 L 182 70 L 178 74 L 132 74 Z" fill="url(#goldShine)" opacity="0.85"/>
+
+  <!-- V interno (peak ao centro logo abaixo das asas) -->
+  <path d="M 92 96 L 164 96 L 152 108 L 104 108 Z" fill="url(#goldEdge)"/>
+
+  <!-- Stem vertical -->
+  <path d="M 114 108 L 142 108 L 142 158 L 114 158 Z" fill="url(#goldFace)"/>
+  <path d="M 114 108 L 118 108 L 118 158 L 114 158 Z" fill="url(#goldShine)" opacity="0.7"/>
+
+  <!-- Cabeça do 7 (faixa horizontal larga) -->
+  <path d="M 96 158 L 170 158 L 158 174 L 96 174 Z" fill="url(#goldFace)"/>
+  <path d="M 96 158 L 170 158 L 168 162 L 96 162 Z" fill="url(#goldShine)" opacity="0.6"/>
+
+  <!-- Lâmina diagonal do 7 -->
+  <path d="M 158 174 L 170 174 L 124 200 L 112 192 Z" fill="url(#goldEdge)"/>
+
+  <!-- Pequeno corte/notch no canto inferior esquerdo -->
+  <path d="M 112 192 L 124 200 L 116 200 L 110 196 Z" fill="#7a5530"/>
+
+  <!-- Highlight superior no anel (arco brilhante) -->
+  <path d="M 160 24 Q 206 36 230 78" stroke="#fff4d6" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.7"/>
+</svg>

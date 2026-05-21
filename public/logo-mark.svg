@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="ring2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6e4e26"/>
+      <stop offset="0.4" stop-color="#d4a574"/>
+      <stop offset="0.55" stop-color="#fff4d6"/>
+      <stop offset="0.85" stop-color="#a07b4b"/>
+      <stop offset="1" stop-color="#5b3f1f"/>
+    </linearGradient>
+    <linearGradient id="goldT2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbe6b6"/>
+      <stop offset="0.45" stop-color="#d4a574"/>
+      <stop offset="1" stop-color="#7a5530"/>
+    </linearGradient>
+    <radialGradient id="glow2" cx="0.78" cy="0.18" r="0.35">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="64" cy="64" r="58" stroke="url(#ring2)" stroke-width="2.2" fill="none"/>
+  <circle cx="64" cy="64" r="58" stroke="url(#glow2)" stroke-width="2.2" fill="none"/>
+  <path d="M38 38 L90 38 L90 50 L70 50 L70 58 L83 58 L57 92 L57 58 L46 58 L46 50 L38 50 Z"
+        fill="url(#goldT2)"/>
+</svg>

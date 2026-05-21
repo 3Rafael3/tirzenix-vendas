@@ -1,0 +1,179 @@
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  html {
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-ink-950 text-silver-100 font-sans;
+    font-feature-settings: "cv01", "cv02", "cv03", "cv04", "ss01", "ss02";
+    letter-spacing: -0.01em;
+    background-image:
+      radial-gradient(ellipse 70% 60% at 20% -10%, rgba(212, 165, 116, 0.12), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 90% 10%, rgba(184, 134, 90, 0.08), transparent 60%),
+      radial-gradient(ellipse 80% 60% at 50% 110%, rgba(122, 85, 48, 0.1), transparent 65%),
+      linear-gradient(180deg, #07070a 0%, #0a0a0d 100%);
+    background-attachment: fixed;
+  }
+  ::selection {
+    background-color: rgba(212, 165, 116, 0.35);
+    color: #fdf6e6;
+  }
+  h1, h2, h3, h4 {
+    @apply text-silver-50 font-display;
+    letter-spacing: -0.025em;
+  }
+  h1 { letter-spacing: -0.035em; }
+  /* Numerais tabulares + ligatures contextuais para Geist */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "ss01" 1;
+  }
+}
+
+@layer components {
+  .card {
+    @apply relative bg-ink-900/70 backdrop-blur-xl rounded-2xl border border-gold-900/25 shadow-soft;
+  }
+  .card-gold {
+    @apply card border-gold-700/40 shadow-glow-sm;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium tracking-tight transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold-500 focus:ring-offset-ink-950;
+  }
+  .btn-primary {
+    @apply btn bg-gold-gradient text-ink-950 font-semibold shadow-gold hover:shadow-glow hover:-translate-y-0.5 active:translate-y-0 ring-1 ring-gold-300/40;
+  }
+  .btn-secondary {
+    @apply btn bg-ink-800/80 text-silver-100 border border-ink-600 hover:bg-ink-750 hover:border-gold-700/50;
+  }
+  .btn-ghost {
+    @apply btn text-silver-300 hover:bg-ink-800/60 hover:text-silver-50;
+  }
+  .btn-danger {
+    @apply btn bg-rose-600 text-white hover:bg-rose-500 shadow-soft;
+  }
+  .input {
+    @apply w-full rounded-xl border border-ink-600 bg-ink-850/90 px-3.5 py-2.5 text-sm text-silver-50 shadow-inner placeholder:text-silver-500 focus:outline-none focus:ring-2 focus:ring-gold-500/60 focus:border-gold-600/60 transition;
+    letter-spacing: -0.005em;
+  }
+  .input::-webkit-calendar-picker-indicator {
+    filter: invert(0.7) sepia(0.6) saturate(2) hue-rotate(5deg);
+    opacity: 0.7;
+  }
+  select.input {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23d4a574' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.85rem center;
+    background-size: 14px;
+    padding-right: 2.2rem;
+    appearance: none;
+  }
+  .label {
+    @apply block text-[10px] font-semibold text-gold-400/90 uppercase tracking-[0.12em] mb-1.5;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium tracking-tight;
+  }
+  .gold-text {
+    @apply bg-gold-gradient bg-clip-text text-transparent;
+  }
+  .gold-divider {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(212, 165, 116, 0.4) 50%,
+      transparent 100%
+    );
+    height: 1px;
+  }
+
+  /* Slider customizado (range) com track e thumb dourados */
+  .range-gold {
+    @apply appearance-none w-full bg-transparent;
+  }
+  .range-gold::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(to right, #d4a574 var(--val, 50%), #1c1c25 var(--val, 50%));
+    border: 1px solid rgba(212, 165, 116, 0.25);
+  }
+  .range-gold::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: #1c1c25;
+    border: 1px solid rgba(212, 165, 116, 0.25);
+  }
+  .range-gold::-moz-range-progress {
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(to right, #d4a574, #fbe6b6);
+  }
+  .range-gold::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 30% 25%, #fff4d6 0%, #d4a574 50%, #7a5530 100%);
+    border: 2px solid #16161d;
+    box-shadow: 0 0 0 1px rgba(212, 165, 116, 0.6), 0 0 12px rgba(212, 165, 116, 0.4);
+    cursor: pointer;
+    margin-top: -7px;
+    transition: transform 0.15s ease;
+  }
+  .range-gold::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+  }
+  .range-gold::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 30% 25%, #fff4d6 0%, #d4a574 50%, #7a5530 100%);
+    border: 2px solid #16161d;
+    box-shadow: 0 0 0 1px rgba(212, 165, 116, 0.6), 0 0 12px rgba(212, 165, 116, 0.4);
+    cursor: pointer;
+  }
+}
+
+/* Scrollbar dourada slim */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #3a2c1a;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #5b3f1f;
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #fdf6e6;
+  -webkit-box-shadow: 0 0 0 1000px #16161d inset;
+  caret-color: #d4a574;
+}
