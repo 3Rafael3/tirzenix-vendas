@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/Toast";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ScrollProgress } from "@/components/effects/ScrollProgress";
 import { FloatingMoneyHost } from "@/components/effects/FloatingMoney";
+import { ErrorBoundary } from "@/components/layout/ErrorBoundary";
 
 export function AppLayout() {
   const location = useLocation();
@@ -57,7 +58,9 @@ export function AppLayout() {
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] as const }}
             >
-              <Outlet />
+              <ErrorBoundary key={location.pathname}>
+                <Outlet />
+              </ErrorBoundary>
             </motion.div>
           </AnimatePresence>
         </div>

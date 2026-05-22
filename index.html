@@ -32,12 +32,26 @@
         }
       })();
     </script>
-    <!-- Registrar service worker (PWA / offline) -->
+    <!-- Registrar service worker (PWA / offline) com auto-update agressivo -->
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", function () {
           var swUrl = new URL("sw.js", document.baseURI).toString();
-          navigator.serviceWorker.register(swUrl).catch(function () {});
+          navigator.serviceWorker
+            .register(swUrl)
+            .then(function (reg) {
+              // Confere por updates a cada visita
+              if (reg.update) reg.update();
+              // Quando um novo SW for ativado, recarrega para pegar assets novos
+              if (reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+              navigator.serviceWorker.addEventListener("controllerchange", function () {
+                // Evita loop infinito
+                if (window.__tirzenixReloaded) return;
+                window.__tirzenixReloaded = true;
+                window.location.reload();
+              });
+            })
+            .catch(function () {});
         });
       }
     </script>
