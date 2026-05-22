@@ -138,6 +138,66 @@
     );
     height: 1px;
   }
+  /* Divider dourado com luz viajando — usar para elementos premium */
+  .gold-divider-shine {
+    @apply gold-divider relative overflow-hidden;
+  }
+  .gold-divider-shine::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 244, 214, 0.85) 50%,
+      transparent 100%
+    );
+    animation: gold-thread 4.2s ease-in-out infinite;
+  }
+  /* Botão primário com shine periódico ("metal real") */
+  .btn-primary {
+    background-size: 200% 100%;
+    background-position: 0% 0%;
+    animation: gold-pan 7s ease-in-out infinite;
+  }
+  .btn-primary:hover {
+    animation-duration: 2.2s;
+  }
+  /* Card lift premium */
+  .lift {
+    @apply transition-all duration-300;
+    will-change: transform;
+  }
+  .lift:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 12px 32px -12px rgba(0, 0, 0, 0.6),
+      0 0 0 1px rgba(212, 165, 116, 0.25),
+      0 0 24px -8px rgba(212, 165, 116, 0.35);
+  }
+  /* Skeleton com shimmer dourado */
+  .skeleton {
+    @apply rounded-md bg-ink-800/60 relative overflow-hidden;
+  }
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(212, 165, 116, 0.15) 50%,
+      transparent 100%
+    );
+    animation: gold-pan 1.8s linear infinite;
+    background-size: 200% 100%;
+  }
+  /* Texto dourado animado (gradiente que desliza) */
+  .gold-text-animated {
+    @apply gold-text;
+    background-size: 200% 100%;
+    animation: gold-pan 6s ease-in-out infinite;
+  }
 
   /* Slider customizado (range) com track e thumb dourados */
   .range-gold {

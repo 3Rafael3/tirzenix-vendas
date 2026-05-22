@@ -69,8 +69,16 @@ export function BrandMark({
       {animate ? (
         <motion.div
           initial={{ rotate: -10, scale: 0.85, opacity: 0 }}
-          animate={{ rotate: 0, scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 180, damping: 16 }}
+          animate={{
+            rotate: [0, 0.6, 0, -0.6, 0],
+            scale: 1,
+            opacity: 1,
+          }}
+          transition={{
+            opacity: { duration: 0.5 },
+            scale: { type: "spring", stiffness: 180, damping: 16 },
+            rotate: { duration: 18, repeat: Infinity, ease: "easeInOut" },
+          }}
           className="grid place-items-center size-full"
         >
           {content}

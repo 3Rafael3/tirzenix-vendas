@@ -5,6 +5,7 @@ import { Sidebar } from "./Sidebar";
 import { MobileNav } from "./MobileNav";
 import { Toaster } from "@/components/ui/Toast";
 import { CommandPalette } from "@/components/CommandPalette";
+import { ScrollProgress } from "@/components/effects/ScrollProgress";
 
 export function AppLayout() {
   const location = useLocation();
@@ -43,6 +44,7 @@ export function AppLayout() {
         <div className="absolute inset-0 bg-noise opacity-[0.04] mix-blend-overlay" />
       </div>
 
+      <ScrollProgress />
       <Sidebar />
       <main className="flex-1 min-w-0 lg:pl-72 pt-safe pb-[calc(env(safe-area-inset-bottom)+6rem)] lg:pb-0">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-10 py-4 sm:py-6 lg:py-10">

@@ -34,8 +34,11 @@ import {
   getReservationTotals,
   getProductMetrics,
 } from "@/store/useStore";
+import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+import { Sparkles as SparklesFx } from "@/components/effects/Sparkles";
+import { GoldConfetti } from "@/components/effects/GoldConfetti";
 import {
   formatBRL,
   formatNum,
@@ -200,10 +203,20 @@ export default function Dashboard() {
   const goalRemaining = Math.max(goal - stats.monthRevenue, 0);
   const goalAchieved = goalProgress >= 1;
 
+  // Dispara confete dourado quando a meta é atingida (uma vez por sessão)
+  const [confettiFired, setConfettiFired] = useState(false);
+  useEffect(() => {
+    if (goalAchieved && !confettiFired) {
+      const t = setTimeout(() => setConfettiFired(true), 400);
+      return () => clearTimeout(t);
+    }
+  }, [goalAchieved, confettiFired]);
+
   const empty = sales.length === 0 && products.length === 0;
 
   return (
     <>
+      <GoldConfetti trigger={confettiFired} />
       <PageHeader
         title="Dashboard"
         subtitle={`${brand.name} · ${brand.tagline}`}
@@ -393,8 +406,9 @@ export default function Dashboard() {
         </motion.div>
 
         {/* Meta mensal */}
-        <motion.div variants={item} className="card p-6 flex flex-col relative overflow-hidden">
+        <motion.div variants={item} className="card lift p-6 flex flex-col relative overflow-hidden">
           <div className="absolute -top-12 -right-12 size-40 rounded-full bg-gold-700/20 blur-2xl" />
+          <SparklesFx count={goalAchieved ? 14 : 6} />
           <div className="relative">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-gold-300">

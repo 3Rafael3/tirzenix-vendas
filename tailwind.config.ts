@@ -98,15 +98,35 @@ export default {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
+        "gold-pan": {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+        },
+        "gold-thread": {
+          "0%": { transform: "translateX(-110%)" },
+          "55%, 100%": { transform: "translateX(110%)" },
+        },
         "glow-pulse": {
           "0%, 100%": { boxShadow: "0 0 0 0 rgba(212,165,116,0.45)" },
           "50%": { boxShadow: "0 0 24px 4px rgba(212,165,116,0.15)" },
+        },
+        "shimmer-text": {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-6px)" },
         },
       },
       animation: {
         "fade-in": "fade-in 0.25s ease-out",
         "gold-shine": "gold-shine 3s linear infinite",
+        "gold-pan": "gold-pan 6s ease-in-out infinite",
+        "gold-thread": "gold-thread 4.2s ease-in-out infinite",
         "glow-pulse": "glow-pulse 2.4s ease-in-out infinite",
+        "shimmer-text": "shimmer-text 5s ease-in-out infinite",
+        float: "float 6s ease-in-out infinite",
       },
     },
   },
