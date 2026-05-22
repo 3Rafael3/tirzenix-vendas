@@ -565,10 +565,11 @@ export default function Vendas() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
-            className="fixed inset-x-3 bottom-3 lg:inset-x-auto lg:left-1/2 lg:bottom-4 lg:-translate-x-1/2 lg:w-auto lg:max-w-[min(80rem,calc(100vw-2rem))] z-40"
+            className="fixed inset-x-3 bottom-3 sm:left-1/2 sm:-translate-x-1/2 sm:bottom-4 sm:w-auto sm:max-w-[min(64rem,calc(100vw-2rem))] z-40"
           >
-            <div className="card-gold bg-ink-900/95 backdrop-blur-xl px-4 py-3 shadow-glow flex flex-col lg:flex-row lg:items-center gap-3 max-h-[80vh] overflow-y-auto">
-              <div className="flex items-start lg:items-center gap-3 flex-wrap">
+            <div className="card-gold bg-ink-900/95 backdrop-blur-xl shadow-glow rounded-2xl overflow-hidden">
+              {/* Linha 1: contagem + ações de status + delete */}
+              <div className="flex items-center gap-3 flex-wrap px-4 py-3">
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => setSelected(new Set())}
@@ -581,110 +582,110 @@ export default function Vendas() {
                     <p className="text-[10px] uppercase tracking-[0.16em] text-gold-400 font-semibold">
                       Selecionadas
                     </p>
-                    <p className="text-sm font-bold text-silver-50 tabular-nums">
+                    <p className="text-sm font-bold text-silver-50 tabular-nums leading-tight">
                       {selStats.count}
                       <span className="text-silver-500 text-xs font-normal ml-1">
-                        ({selStats.units} un.)
+                        · {selStats.units} un.
                       </span>
                     </p>
                   </div>
                 </div>
-                <span className="hidden lg:block w-px h-10 bg-gold-900/40 shrink-0" />
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-x-4 gap-y-2 flex-1 min-w-0">
-                  <SumStat label="Bruto" value={formatBRL(selStats.gross)} />
-                  <SumStat label="Custo" value={formatBRL(selStats.cost)} tone="silver" />
-                  <SumStat label="Taxas" value={formatBRL(selStats.fees)} tone="rose" />
-                  <SumStat label="Líquido" value={formatBRL(selStats.net)} tone="gold" />
-                  <SumStat
-                    label="Lucro líq."
-                    value={formatBRL(selStats.profit)}
-                    tone={selStats.profit >= 0 ? "emerald" : "rose"}
+                <div className="ml-auto flex flex-wrap items-center gap-1.5 shrink-0">
+                  <BulkBtn
+                    icon={CheckCircle2}
+                    label="Pago"
+                    tone="emerald"
+                    onClick={() => bulkSetStatus("Pago")}
+                    disabled={selStats.paid === selStats.count}
+                    title="Marcar como Pago"
                   />
-                  <SumStat
-                    label="Margem"
-                    value={formatPct(selStats.margin)}
-                    tone={selStats.margin >= 0 ? "gold" : "rose"}
+                  <BulkBtn
+                    icon={Clock}
+                    label="Pendente"
+                    tone="gold"
+                    onClick={() => bulkSetStatus("Pendente")}
+                    title="Marcar como Pendente"
                   />
+                  <BulkBtn
+                    icon={AlertCircle}
+                    label="Parcelado"
+                    tone="sky"
+                    onClick={() => bulkSetStatus("Parcelado")}
+                    title="Marcar como Parcelado"
+                  />
+                  <BulkBtn
+                    icon={XCircle}
+                    label="Cancelar"
+                    tone="silver"
+                    onClick={() => bulkSetStatus("Cancelado")}
+                    title="Marcar como Cancelado"
+                  />
+                  <span className="hidden sm:block w-px h-5 bg-gold-900/40 mx-1" />
+                  <button
+                    className="btn-secondary text-xs whitespace-nowrap"
+                    onClick={() => exportRows(selStats.items, "tirzenix-vendas-selecionadas")}
+                  >
+                    <Download size={13} /> CSV
+                  </button>
+                  <button
+                    className="btn-danger text-xs whitespace-nowrap"
+                    onClick={() => setConfirmBulkDel(true)}
+                  >
+                    <Trash2 size={13} /> Excluir
+                  </button>
                 </div>
               </div>
 
-              <div className="lg:ml-auto flex flex-wrap items-center gap-1.5 shrink-0 border-t border-gold-900/30 pt-3 lg:border-0 lg:pt-0">
-                <BulkBtn
-                  icon={CheckCircle2}
-                  label="Pago"
-                  tone="emerald"
-                  onClick={() => bulkSetStatus("Pago")}
-                  disabled={selStats.paid === selStats.count}
-                  title="Marcar como Pago"
+              {/* Linha 2: stats grid */}
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-x-3 gap-y-2 px-4 py-3 border-t border-gold-900/30 bg-ink-950/40">
+                <SumStat label="Bruto" value={formatBRL(selStats.gross)} />
+                <SumStat label="Custo" value={formatBRL(selStats.cost)} tone="silver" />
+                <SumStat label="Taxas" value={formatBRL(selStats.fees)} tone="rose" />
+                <SumStat label="Líquido" value={formatBRL(selStats.net)} tone="gold" />
+                <SumStat
+                  label="Lucro líq."
+                  value={formatBRL(selStats.profit)}
+                  tone={selStats.profit >= 0 ? "emerald" : "rose"}
                 />
-                <BulkBtn
-                  icon={Clock}
-                  label="Pendente"
-                  tone="gold"
-                  onClick={() => bulkSetStatus("Pendente")}
-                  title="Marcar como Pendente"
+                <SumStat
+                  label="Margem"
+                  value={formatPct(selStats.margin)}
+                  tone={selStats.margin >= 0 ? "gold" : "rose"}
                 />
-                <BulkBtn
-                  icon={AlertCircle}
-                  label="Parcelado"
-                  tone="sky"
-                  onClick={() => bulkSetStatus("Parcelado")}
-                  title="Marcar como Parcelado"
-                />
-                <BulkBtn
-                  icon={XCircle}
-                  label="Cancelar"
-                  tone="silver"
-                  onClick={() => bulkSetStatus("Cancelado")}
-                  title="Marcar como Cancelado"
-                />
-                <span className="hidden lg:block w-px h-6 bg-gold-900/40 mx-1" />
-                <button
-                  className="btn-secondary text-xs"
-                  onClick={() => exportRows(selStats.items, "tirzenix-vendas-selecionadas")}
-                >
-                  <Download size={13} /> CSV
-                </button>
-                <button
-                  className="btn-danger text-xs"
-                  onClick={() => setConfirmBulkDel(true)}
-                >
-                  <Trash2 size={13} /> Excluir
-                </button>
               </div>
-            </div>
 
-            {/* Indicadores extras: cartão / sinal / prejuízo dos selecionados */}
-            {(selStats.onCard > 0 || selStats.withSignal > 0 || selStats.profit < 0) && (
-              <div className="card-gold bg-ink-950/80 backdrop-blur-xl mt-2 px-4 py-2 flex flex-wrap items-center gap-3 text-[11px] text-silver-300">
-                {selStats.onCard > 0 && (
-                  <span className="inline-flex items-center gap-1">
-                    <CreditCard size={11} className="text-gold-400" />
-                    {selStats.onCard} no cartão
+              {/* Linha 3 (condicional): indicadores extras */}
+              {(selStats.onCard > 0 || selStats.withSignal > 0 || selStats.profit !== 0) && (
+                <div className="flex flex-wrap items-center gap-3 px-4 py-2 border-t border-gold-900/30 bg-ink-950/60 text-[11px] text-silver-300">
+                  {selStats.onCard > 0 && (
+                    <span className="inline-flex items-center gap-1">
+                      <CreditCard size={11} className="text-gold-400" />
+                      {selStats.onCard} no cartão
+                    </span>
+                  )}
+                  {selStats.withSignal > 0 && (
+                    <span className="inline-flex items-center gap-1">
+                      <Sparkles size={11} className="text-gold-400" />
+                      {selStats.withSignal} com sinal
+                    </span>
+                  )}
+                  {selStats.profit < 0 ? (
+                    <span className="inline-flex items-center gap-1 text-rose-300">
+                      <TrendingDown size={11} />
+                      Soma no prejuízo
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-emerald-300">
+                      <TrendingUp size={11} />
+                      Soma no lucro
+                    </span>
+                  )}
+                  <span className="text-silver-500 ml-auto whitespace-nowrap">
+                    Ticket médio: <strong className="text-silver-100 font-mono">{formatBRL(selStats.ticketAvg)}</strong>
                   </span>
-                )}
-                {selStats.withSignal > 0 && (
-                  <span className="inline-flex items-center gap-1">
-                    <Sparkles size={11} className="text-gold-400" />
-                    {selStats.withSignal} com sinal
-                  </span>
-                )}
-                {selStats.profit < 0 ? (
-                  <span className="inline-flex items-center gap-1 text-rose-300">
-                    <TrendingDown size={11} />
-                    Soma no prejuízo
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 text-emerald-300">
-                    <TrendingUp size={11} />
-                    Soma no lucro
-                  </span>
-                )}
-                <span className="text-silver-500 ml-auto">
-                  Ticket médio: <strong className="text-silver-100 font-mono">{formatBRL(selStats.ticketAvg)}</strong>
-                </span>
-              </div>
-            )}
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

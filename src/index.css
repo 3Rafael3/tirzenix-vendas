@@ -15,6 +15,11 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    /* respeita o notch dos iPhones/iPads em landscape */
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+    --safe-left: env(safe-area-inset-left);
+    --safe-right: env(safe-area-inset-right);
   }
   body {
     @apply bg-ink-950 text-silver-100 font-sans;
@@ -26,6 +31,22 @@
       radial-gradient(ellipse 80% 60% at 50% 110%, rgba(122, 85, 48, 0.1), transparent 65%),
       linear-gradient(180deg, #07070a 0%, #0a0a0d 100%);
     background-attachment: fixed;
+    /* Evita "double-tap zoom" iOS em botões */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+  }
+  /* Touch targets mínimos no mobile */
+  @media (max-width: 640px) {
+    button:not(.btn),
+    [role="button"] {
+      min-height: 32px;
+    }
+    input,
+    select,
+    textarea {
+      font-size: 16px; /* evita zoom no iOS ao focar */
+    }
   }
   ::selection {
     background-color: rgba(212, 165, 116, 0.35);
@@ -41,6 +62,12 @@
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum" 1, "ss01" 1;
   }
+
+  /* Helpers de safe-area para PWA standalone (iOS) */
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  .pl-safe { padding-left: env(safe-area-inset-left); }
+  .pr-safe { padding-right: env(safe-area-inset-right); }
 }
 
 @layer components {

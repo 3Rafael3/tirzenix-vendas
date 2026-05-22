@@ -1,0 +1,27 @@
+{
+  "name": "Tirzenix · Controle de Vendas",
+  "short_name": "Tirzenix",
+  "description": "Sistema profissional de controle de vendas, reservas, clientes e estoque",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0a0c",
+  "theme_color": "#070708",
+  "categories": ["business", "productivity", "finance"],
+  "icons": [
+    {
+      "src": "logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

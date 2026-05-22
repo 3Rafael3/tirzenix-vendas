@@ -44,8 +44,8 @@ export function AppLayout() {
       </div>
 
       <Sidebar />
-      <main className="flex-1 min-w-0 pb-24 lg:pb-0 lg:pl-72">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10">
+      <main className="flex-1 min-w-0 lg:pl-72 pt-safe pb-[calc(env(safe-area-inset-bottom)+6rem)] lg:pb-0">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-10 py-4 sm:py-6 lg:py-10">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}

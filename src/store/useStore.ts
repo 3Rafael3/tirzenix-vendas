@@ -16,7 +16,7 @@ import {
   seedReservations,
   seedSales,
 } from "@/lib/seed";
-import { todayISO, uid } from "@/lib/utils";
+import { todayISO, uid, setPctPrecision } from "@/lib/utils";
 import {
   packageUnitsFor,
   priceForVariant,
@@ -380,7 +380,12 @@ export const useStore = create<StoreState>()(
 
       // ──────────────────── SETTINGS ────────────────────
       updateSettings: (patch) =>
-        set((s) => ({ settings: normalizeSettingsProductVariants({ ...s.settings, ...patch }) })),
+        set((s) => {
+          const next = normalizeSettingsProductVariants({ ...s.settings, ...patch });
+          // Propaga precisão de percentuais
+          setPctPrecision(next.showFullPrecisionPct ? 4 : 2);
+          return { settings: next };
+        }),
 
       resetAll: () =>
         set({
@@ -490,6 +495,10 @@ export const useStore = create<StoreState>()(
           };
         }
         return persisted;
+      },
+      onRehydrateStorage: () => (state) => {
+        // Aplica a precisão de percentuais persistida assim que o store reidrata
+        setPctPrecision(state?.settings?.showFullPrecisionPct ? 4 : 2);
       },
     }
   )

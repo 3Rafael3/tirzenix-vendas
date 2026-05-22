@@ -11,11 +11,19 @@ export const BRL = new Intl.NumberFormat("pt-BR", {
   maximumFractionDigits: 2,
 });
 
-export const PCT = new Intl.NumberFormat("pt-BR", {
-  style: "percent",
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 4,
-});
+/**
+ * Precisão global das porcentagens. Mutável via setPctPrecision().
+ * Default 2 casas. Configurável em Configurações → "Mostrar precisão total".
+ */
+let PCT_PRECISION = 2;
+
+export function setPctPrecision(n: number) {
+  PCT_PRECISION = Math.max(0, Math.min(4, Math.round(n)));
+}
+
+export function getPctPrecision() {
+  return PCT_PRECISION;
+}
 
 export const NUM = new Intl.NumberFormat("pt-BR");
 
@@ -24,9 +32,14 @@ export function formatBRL(value: number | undefined | null) {
   return BRL.format(value);
 }
 
-export function formatPct(value: number | undefined | null) {
+export function formatPct(value: number | undefined | null, precision?: number) {
   if (value == null || Number.isNaN(value) || !isFinite(value)) return "—";
-  return PCT.format(value);
+  const digits = precision ?? PCT_PRECISION;
+  return new Intl.NumberFormat("pt-BR", {
+    style: "percent",
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(value);
 }
 
 export function formatNum(value: number | undefined | null) {

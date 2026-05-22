@@ -10,6 +10,7 @@ import { formatBRL } from "@/lib/utils";
 import { defaultVariantsForProduct } from "@/lib/productVariants";
 import { LogoUploader } from "@/components/brand/LogoUploader";
 import { CurrencyInput, NumberInput } from "@/components/forms/CurrencyInput";
+import { CloudSyncCard } from "@/components/sync/CloudSyncCard";
 
 export default function Configuracoes() {
   const settings = useStore((s) => s.settings);
@@ -191,6 +192,9 @@ export default function Configuracoes() {
         className="grid grid-cols-1 lg:grid-cols-3 gap-4"
       >
         <motion.div variants={cardVariant} className="lg:col-span-3">
+          <CloudSyncCard />
+        </motion.div>
+        <motion.div variants={cardVariant} className="lg:col-span-3">
           <LogoUploader />
         </motion.div>
         <motion.div variants={cardVariant} className="card p-6 lg:col-span-2 relative overflow-hidden">
@@ -307,6 +311,51 @@ export default function Configuracoes() {
 
             <div className="flex justify-end mt-5">
               <button className="btn-primary" onClick={saveFees}>Salvar taxas</button>
+            </div>
+
+            {/* Toggle de precisão de % */}
+            <div className="mt-5 pt-5 border-t border-gold-900/25 flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-silver-50">
+                  Mostrar precisão total nos percentuais
+                </p>
+                <p className="text-xs text-silver-400 mt-1">
+                  Quando <strong>desligado</strong>, todos os percentuais (margem, taxa) aparecem com{" "}
+                  <strong className="text-gold-300">2 casas decimais</strong> — ex: <span className="font-mono">32,61%</span>.
+                  Quando <strong>ligado</strong>, mostra até <strong className="text-gold-300">4 casas</strong> — ex:{" "}
+                  <span className="font-mono">32,6094%</span>.
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={!!settings.showFullPrecisionPct}
+                onClick={() =>
+                  updateSettings({
+                    showFullPrecisionPct: !settings.showFullPrecisionPct,
+                  })
+                }
+                className={`relative shrink-0 h-7 w-12 rounded-full transition ring-1 ${
+                  settings.showFullPrecisionPct
+                    ? "bg-gold-gradient ring-gold-300/60 shadow-glow-sm"
+                    : "bg-ink-800 ring-ink-600"
+                }`}
+                title={settings.showFullPrecisionPct ? "Desligar" : "Ligar"}
+              >
+                <motion.span
+                  layout
+                  transition={{ type: "spring", stiffness: 360, damping: 28 }}
+                  className={`absolute top-0.5 size-6 rounded-full grid place-items-center ${
+                    settings.showFullPrecisionPct
+                      ? "right-0.5 bg-ink-950 text-gold-300"
+                      : "left-0.5 bg-ink-950 text-silver-400"
+                  }`}
+                >
+                  <span className="text-[9px] font-bold font-mono tabular-nums">
+                    {settings.showFullPrecisionPct ? "4" : "2"}
+                  </span>
+                </motion.span>
+              </button>
             </div>
           </div>
         </motion.div>

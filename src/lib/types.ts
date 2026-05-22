@@ -131,4 +131,9 @@ export interface Settings {
   };
   /** Taxas padrão aplicadas automaticamente em novas vendas. */
   feeDefaults?: FeeDefaults;
+  /**
+   * Quando true, percentuais (margem, taxas) são exibidos com até 4 casas decimais.
+   * Quando false (default), todos os percentuais são truncados em 2 casas.
+   */
+  showFullPrecisionPct?: boolean;
 }
