@@ -10,7 +10,7 @@ import { formatBRL } from "@/lib/utils";
 import { defaultVariantsForProduct } from "@/lib/productVariants";
 import { LogoUploader } from "@/components/brand/LogoUploader";
 import { CurrencyInput, NumberInput } from "@/components/forms/CurrencyInput";
-import { CloudSyncCard } from "@/components/sync/CloudSyncCard";
+import { GistSyncCard } from "@/components/sync/GistSyncCard";
 
 export default function Configuracoes() {
   const settings = useStore((s) => s.settings);
@@ -192,7 +192,7 @@ export default function Configuracoes() {
         className="grid grid-cols-1 lg:grid-cols-3 gap-4"
       >
         <motion.div variants={cardVariant} className="lg:col-span-3">
-          <CloudSyncCard />
+          <GistSyncCard />
         </motion.div>
         <motion.div variants={cardVariant} className="lg:col-span-3">
           <LogoUploader />
