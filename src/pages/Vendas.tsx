@@ -375,8 +375,160 @@ export default function Vendas() {
         </div>
       </div>
 
-      {/* Tabela */}
-      <div className="card overflow-hidden">
+      {/* List cards — apenas mobile */}
+      <div className="md:hidden space-y-2">
+        {sorted.length === 0 ? (
+          <div className="card p-0">
+            <Empty
+              icon={ShoppingCart}
+              title="Nenhuma venda registrada"
+              description={
+                query || statusFilter || quick !== "all"
+                  ? "Tente limpar os filtros ou ajustar a busca."
+                  : "Comece registrando sua primeira venda."
+              }
+              action={
+                !query && !statusFilter && quick === "all" ? (
+                  <button
+                    className="btn-primary"
+                    onClick={() => {
+                      setEditing(null);
+                      setOpen(true);
+                    }}
+                  >
+                    <Plus size={16} /> Nova venda
+                  </button>
+                ) : null
+              }
+            />
+          </div>
+        ) : (
+          sorted.map((s) => {
+            const f = getSaleFinancials(s);
+            const isSelected = selected.has(s.id);
+            const isLoss = f.netProfit < 0;
+            return (
+              <motion.div
+                key={`m-${s.id}`}
+                layout
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+                className={cn(
+                  "rounded-xl border p-3 transition active:scale-[0.99]",
+                  isSelected
+                    ? "bg-gold-500/[0.08] border-gold-700/40"
+                    : "bg-ink-900/40 border-gold-900/15"
+                )}
+              >
+                <div className="flex items-start gap-2">
+                  <div onClick={(e) => e.stopPropagation()} className="pt-0.5">
+                    <Checkbox checked={isSelected} onChange={() => toggleOne(s.id)} />
+                  </div>
+                  <button
+                    onClick={() => setDetail(s)}
+                    className="flex-1 text-left min-w-0"
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-[11px] text-silver-400 font-mono tabular-nums">
+                        {formatDate(s.date)}
+                      </span>
+                      <StatusBadge value={s.status} size="xs" />
+                    </div>
+                    <div className="font-medium text-silver-50 truncate">{s.client}</div>
+                    <div className="text-xs text-silver-500 font-mono truncate">
+                      {s.contact}
+                    </div>
+                    <div className="mt-1.5 text-sm text-silver-200 truncate">
+                      {s.product} · {s.dosage} · {s.qty} un.
+                    </div>
+                    <div className="mt-1 flex items-center gap-1.5 flex-wrap text-[10px]">
+                      <span className="inline-flex items-center gap-1 text-silver-300">
+                        {s.payment === "Cartão Crédito" ? (
+                          <CreditCard size={10} className="text-gold-400" />
+                        ) : (
+                          <Wallet size={10} className="text-silver-400" />
+                        )}
+                        {s.payment}
+                      </span>
+                      {(f.installments ?? 1) > 1 && (
+                        <span className="font-mono text-gold-300 bg-gold-500/10 ring-1 ring-gold-500/30 px-1 rounded">
+                          {f.installments}×
+                        </span>
+                      )}
+                      {f.signalAmount > 0 && (
+                        <span className="inline-flex items-center gap-0.5 text-gold-300">
+                          <Sparkles size={9} /> sinal {formatBRL(f.signalAmount)}
+                        </span>
+                      )}
+                      {isLoss && (
+                        <span className="font-bold text-rose-300 bg-rose-500/10 ring-1 ring-rose-500/30 px-1 rounded">
+                          PREJ
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-2 grid grid-cols-3 gap-2 pt-2 border-t border-gold-900/15 text-[11px]">
+                      <div>
+                        <div className="text-silver-500">Bruto</div>
+                        <div className="font-mono text-silver-200 tabular-nums">
+                          {formatBRL(f.totalSale)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-silver-500">Líquido</div>
+                        <div className="font-mono text-gold-200 tabular-nums font-semibold">
+                          {formatBRL(f.netReceived)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-silver-500">Lucro</div>
+                        <div
+                          className={cn(
+                            "font-mono tabular-nums font-semibold",
+                            f.netProfit > 0
+                              ? "text-emerald-300"
+                              : f.netProfit < 0
+                              ? "text-rose-300"
+                              : "text-silver-400"
+                          )}
+                        >
+                          {formatBRL(f.netProfit)}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                  <div
+                    className="flex flex-col gap-1 shrink-0"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      className="p-1.5 rounded-md text-silver-400 hover:bg-gold-500/10 hover:text-gold-300 transition"
+                      onClick={() => {
+                        setEditing(s);
+                        setOpen(true);
+                      }}
+                      aria-label="Editar"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      className="p-1.5 rounded-md text-silver-400 hover:bg-rose-500/15 hover:text-rose-300 transition"
+                      onClick={() => setConfirmDel(s)}
+                      aria-label="Excluir"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Tabela — desktop apenas */}
+      <div className="card overflow-hidden hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-ink-900/80 backdrop-blur sticky top-0 z-10">

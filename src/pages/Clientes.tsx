@@ -403,8 +403,124 @@ export default function Clientes() {
         </div>
       </div>
 
-      {/* Tabela */}
-      <div className="card overflow-hidden">
+      {/* List cards — apenas mobile */}
+      <div className="md:hidden space-y-2">
+        {sorted.length === 0 ? (
+          <div className="card p-0">
+            <Empty
+              icon={Users}
+              title="Nenhum cliente"
+              description={
+                q || filter !== "all"
+                  ? "Tente limpar os filtros."
+                  : "Cadastre seu primeiro cliente para começar."
+              }
+              action={
+                !q && filter === "all" ? (
+                  <button
+                    className="btn-primary"
+                    onClick={() => {
+                      setEditing(null);
+                      setOpen(true);
+                    }}
+                  >
+                    <Plus size={16} /> Novo cliente
+                  </button>
+                ) : null
+              }
+            />
+          </div>
+        ) : (
+          sorted.map((c) => {
+            const isSelected = selected.has(c.id);
+            const isVip = c.orders >= 3;
+            const isLoss = c.profit < 0;
+            return (
+              <motion.div
+                key={`m-${c.id}`}
+                layout
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+                className={cn(
+                  "rounded-xl border p-3 transition active:scale-[0.99]",
+                  isSelected
+                    ? "bg-gold-500/[0.08] border-gold-700/40"
+                    : "bg-ink-900/40 border-gold-900/15"
+                )}
+              >
+                <div className="flex items-start gap-2.5">
+                  <div className="pt-0.5">
+                    <Checkbox
+                      checked={isSelected}
+                      onChange={() => toggleOne(c.id)}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="font-medium text-silver-50 truncate">{c.name}</div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {isVip && (
+                          <span className="badge bg-gold-500/15 text-gold-200 ring-1 ring-gold-500/30 text-[9px]">
+                            <Crown size={9} /> VIP
+                          </span>
+                        )}
+                        {isLoss && (
+                          <span className="badge bg-rose-500/15 text-rose-300 ring-1 ring-rose-500/30 text-[9px]">
+                            PREJ
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-xs text-silver-500 font-mono truncate">
+                      {c.phone || "—"}
+                    </div>
+                    <div className="mt-2 grid grid-cols-3 gap-2 pt-2 border-t border-gold-900/15 text-[11px]">
+                      <div>
+                        <div className="text-silver-500">Compras</div>
+                        <div className="font-mono text-silver-200 tabular-nums">
+                          {c.orders}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-silver-500">Receita</div>
+                        <div className="font-mono text-silver-100 tabular-nums">
+                          {formatBRL(c.revenue)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-silver-500">Lucro</div>
+                        <div
+                          className={cn(
+                            "font-mono tabular-nums",
+                            c.profit > 0
+                              ? "text-emerald-300"
+                              : c.profit < 0
+                              ? "text-rose-300"
+                              : "text-silver-300"
+                          )}
+                        >
+                          {formatBRL(c.profit)}
+                        </div>
+                      </div>
+                    </div>
+                    {c.lastDate && (
+                      <div className="text-[10px] text-silver-500 mt-1.5 font-mono">
+                        Última compra: {formatDate(c.lastDate)} · Margem{" "}
+                        <span className="text-gold-300">{formatPct(c.margin)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Tabela — desktop apenas */}
+      <div className="card overflow-hidden hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-ink-900/80 backdrop-blur sticky top-0 z-10">

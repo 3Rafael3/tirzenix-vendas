@@ -25,11 +25,10 @@
     @apply bg-ink-950 text-silver-100 font-sans;
     font-feature-settings: "cv01", "cv02", "cv03", "cv04", "ss01", "ss02";
     letter-spacing: -0.01em;
+    /* Ornamentação discreta — 1 ponto de calor, sem barroquismo */
     background-image:
-      radial-gradient(ellipse 70% 60% at 20% -10%, rgba(212, 165, 116, 0.12), transparent 60%),
-      radial-gradient(ellipse 60% 50% at 90% 10%, rgba(184, 134, 90, 0.08), transparent 60%),
-      radial-gradient(ellipse 80% 60% at 50% 110%, rgba(122, 85, 48, 0.1), transparent 65%),
-      linear-gradient(180deg, #07070a 0%, #0a0a0d 100%);
+      radial-gradient(ellipse 60% 50% at 80% -5%, rgba(212, 165, 116, 0.06), transparent 55%),
+      linear-gradient(180deg, #07070a 0%, #09090b 100%);
     background-attachment: fixed;
     /* Evita "double-tap zoom" iOS em botões */
     touch-action: manipulation;
@@ -54,9 +53,9 @@
   }
   h1, h2, h3, h4 {
     @apply text-silver-50 font-display;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em;
   }
-  h1 { letter-spacing: -0.035em; }
+  h1 { letter-spacing: -0.025em; }
   /* Numerais tabulares + ligatures contextuais para Geist */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
@@ -72,10 +71,16 @@
 
 @layer components {
   .card {
-    @apply relative bg-ink-900/70 backdrop-blur-xl rounded-2xl border border-gold-900/25 shadow-soft;
+    @apply relative bg-ink-900/50 backdrop-blur-xl rounded-2xl border border-gold-900/15 shadow-soft transition-colors;
+  }
+  .card:hover {
+    @apply border-gold-900/30;
   }
   .card-gold {
-    @apply card border-gold-700/40 shadow-glow-sm;
+    @apply card border-gold-700/35 shadow-glow-sm;
+  }
+  .card-flat {
+    @apply relative bg-ink-900/40 rounded-2xl border border-gold-900/15;
   }
 
   .btn {
@@ -109,11 +114,17 @@
     padding-right: 2.2rem;
     appearance: none;
   }
+  /* Labels de formulário: case natural, mais legíveis */
   .label {
-    @apply block text-[10px] font-semibold text-gold-400/90 uppercase tracking-[0.12em] mb-1.5;
+    @apply block text-xs font-medium text-silver-400 mb-1.5;
+  }
+  /* Sub-labels em pequenos cards (sobrescritas, KPIs etc.) — mantém UPPERCASE
+     pois servem como "categoria" visual, mas com tracking mais natural */
+  .label-cap {
+    @apply block text-[10px] font-semibold text-gold-400/80 uppercase tracking-[0.08em];
   }
   .badge {
-    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium tracking-tight;
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium tracking-tight;
   }
   .gold-text {
     @apply bg-gold-gradient bg-clip-text text-transparent;
