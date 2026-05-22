@@ -387,16 +387,7 @@ export default function Dashboard() {
                 <YAxis stroke="#7d8394" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v))} />
                 <Tooltip
                   cursor={{ stroke: "#d4a574", strokeWidth: 1, strokeDasharray: "3 3", opacity: 0.4 }}
-                  contentStyle={{
-                    background: "rgba(16,16,22,0.95)",
-                    borderRadius: 12,
-                    border: "1px solid rgba(212,165,116,0.3)",
-                    fontSize: 12,
-                    color: "#f7f8fa",
-                    boxShadow: "0 12px 32px -8px rgba(0,0,0,0.6)",
-                  }}
-                  labelStyle={{ color: "#d4a574", fontWeight: 600 }}
-                  formatter={(v: any) => formatBRL(Number(v))}
+                  content={<PremiumChartTooltip />}
                 />
                 <Area type="monotone" dataKey="receita" stroke="#d4a574" strokeWidth={2.5} fill="url(#d-rev)" name="Receita" animationDuration={900} />
                 <Area type="monotone" dataKey="lucro" stroke="#cbd0db" strokeWidth={2.2} fill="url(#d-prof)" name="Lucro" animationDuration={1100} />
@@ -649,6 +640,54 @@ function Kpi({
         {sub && <p className="text-xs text-silver-500 mt-1 truncate">{sub}</p>}
       </div>
     </motion.div>
+  );
+}
+
+/** Tooltip premium para o gráfico de receita/lucro */
+function PremiumChartTooltip(props: any) {
+  const { active, payload, label } = props;
+  if (!active || !payload || !payload.length) return null;
+  const receita = payload.find((p: any) => p.dataKey === "receita")?.value || 0;
+  const lucro = payload.find((p: any) => p.dataKey === "lucro")?.value || 0;
+  const margin = receita ? lucro / receita : 0;
+  return (
+    <div className="relative">
+      <div className="absolute -inset-1 bg-gold-500/20 blur-xl rounded-2xl pointer-events-none" />
+      <div className="relative rounded-xl bg-ink-900/95 backdrop-blur-xl ring-1 ring-gold-700/40 shadow-glow px-3 py-2.5 min-w-[180px]">
+        <div className="absolute top-0 inset-x-0 h-px bg-gold-gradient" />
+        <p className="text-[10px] uppercase tracking-[0.18em] text-gold-400 font-semibold">
+          {label}
+        </p>
+        <div className="mt-2 space-y-1.5">
+          <div className="flex items-center justify-between gap-3">
+            <span className="inline-flex items-center gap-1.5 text-xs text-silver-300">
+              <span className="size-2 rounded-full bg-gold-500" />
+              Receita
+            </span>
+            <span className="font-mono tabular-nums text-sm font-semibold text-silver-50">
+              {formatBRL(receita)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="inline-flex items-center gap-1.5 text-xs text-silver-300">
+              <span className="size-2 rounded-full bg-silver-300" />
+              Lucro
+            </span>
+            <span className="font-mono tabular-nums text-sm font-semibold text-emerald-300">
+              {formatBRL(lucro)}
+            </span>
+          </div>
+        </div>
+        {receita > 0 && (
+          <div className="mt-2 pt-2 border-t border-gold-900/40 flex items-center justify-between">
+            <span className="text-[10px] uppercase tracking-wider text-silver-500">Margem</span>
+            <span className="font-mono tabular-nums text-xs font-bold text-gold-300">
+              {formatPct(margin)}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

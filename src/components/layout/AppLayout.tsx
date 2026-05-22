@@ -6,6 +6,7 @@ import { MobileNav } from "./MobileNav";
 import { Toaster } from "@/components/ui/Toast";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ScrollProgress } from "@/components/effects/ScrollProgress";
+import { FloatingMoneyHost } from "@/components/effects/FloatingMoney";
 
 export function AppLayout() {
   const location = useLocation();
@@ -63,6 +64,7 @@ export function AppLayout() {
       </main>
       <MobileNav />
       <Toaster />
+      <FloatingMoneyHost />
       <CommandPalette />
     </div>
   );

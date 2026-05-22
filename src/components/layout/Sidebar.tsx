@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useStore } from "@/store/useStore";
 import { BrandMark } from "@/components/brand/BrandMark";
+import { SyncStatusChip } from "@/components/sync/SyncStatusChip";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -143,7 +144,9 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="mx-4 mb-4 mt-2 p-4 rounded-2xl bg-gradient-to-br from-ink-900 via-ink-850 to-gold-950/40 relative overflow-hidden ring-1 ring-gold-800/30">
+      <SyncStatusChip />
+
+      <div className="mx-4 mb-4 mt-1 p-4 rounded-2xl bg-gradient-to-br from-ink-900 via-ink-850 to-gold-950/40 relative overflow-hidden ring-1 ring-gold-800/30">
         <div className="absolute -top-10 -right-10 size-24 rounded-full bg-gold-600/15 blur-2xl" />
         <div className="flex items-center gap-2 text-gold-400 text-[10px] font-bold uppercase tracking-[0.18em]">
           <Sparkles size={11} />

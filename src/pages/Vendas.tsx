@@ -30,6 +30,7 @@ import { StatusBadge } from "@/components/ui/Badge";
 import { SaleForm } from "@/components/forms/SaleForm";
 import { SaleDetail } from "@/components/sales/SaleDetail";
 import { toast } from "@/components/ui/Toast";
+import { floatMoney } from "@/components/effects/FloatingMoney";
 import { Empty } from "@/components/ui/Empty";
 import { formatBRL, formatDate, formatNum, formatPct, monthKey, todayISO } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -235,6 +236,9 @@ export default function Vendas() {
     } else {
       addSale(data);
       toast.success("Venda registrada");
+      // Microinteração luxuosa: número volante com o líquido recebido
+      const fin = getSaleFinancials({ ...data, id: "tmp" } as Sale);
+      floatMoney(fin.netReceived, { tone: fin.netProfit >= 0 ? "emerald" : "rose" });
     }
     setOpen(false);
     setEditing(null);
