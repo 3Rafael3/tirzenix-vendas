@@ -50,19 +50,19 @@ export function AppLayout() {
       <Sidebar />
       <main className="flex-1 min-w-0 lg:pl-72 pt-safe pb-[calc(env(safe-area-inset-bottom)+6rem)] lg:pb-0">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-10 py-4 sm:py-6 lg:py-10">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] as const }}
-            >
-              <ErrorBoundary key={location.pathname}>
+          <ErrorBoundary key={location.pathname}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] as const }}
+              >
                 <Outlet />
-              </ErrorBoundary>
-            </motion.div>
-          </AnimatePresence>
+              </motion.div>
+            </AnimatePresence>
+          </ErrorBoundary>
         </div>
       </main>
       <MobileNav />

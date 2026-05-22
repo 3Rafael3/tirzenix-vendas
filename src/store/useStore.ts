@@ -544,30 +544,33 @@ export interface SaleFinancials {
 }
 
 export function getSaleFinancials(sale: Sale): SaleFinancials {
-  const totalPurchase = sale.qty * sale.purchasePrice;
-  const totalSale = sale.qty * sale.salePrice;
+  const qty = Number(sale?.qty) || 0;
+  const purchasePrice = Number(sale?.purchasePrice) || 0;
+  const salePrice = Number(sale?.salePrice) || 0;
+  const totalPurchase = qty * purchasePrice;
+  const totalSale = qty * salePrice;
   const grossProfit = totalSale - totalPurchase;
   const grossMargin = totalSale ? grossProfit / totalSale : 0;
 
-  const signalAmount = Math.min(sale.signal?.amount ?? 0, totalSale);
-  const signalMethod = sale.signal?.method || "";
+  const signalAmount = Math.min(Number(sale?.signal?.amount) || 0, totalSale);
+  const signalMethod = sale?.signal?.method || "";
   const remainingAmount = Math.max(totalSale - signalAmount, 0);
-  const remainingMethod = sale.payment;
+  const remainingMethod = sale?.payment || "";
 
   // Taxas incidem só sobre a parte paga no cartão (saldo restante após o sinal)
-  const onCard = sale.payment === "Cartão Crédito";
+  const onCard = sale?.payment === "Cartão Crédito";
   const cardBase = onCard ? remainingAmount : 0;
 
-  const cardFeePct = sale.cardFeePct ?? 0;
-  const installmentFeePct = sale.installmentFeePct ?? 0;
-  const installments = Math.max(sale.installments ?? 1, 1);
+  const cardFeePct = Number(sale?.cardFeePct) || 0;
+  const installmentFeePct = Number(sale?.installmentFeePct) || 0;
+  const installments = Math.max(Number(sale?.installments) || 1, 1);
 
   const cardFee = onCard ? cardBase * (cardFeePct / 100) : 0;
   const installmentFee =
     onCard && installments > 1
       ? cardBase * ((installmentFeePct * (installments - 1)) / 100)
       : 0;
-  const otherFees = sale.otherFees ?? 0;
+  const otherFees = Number(sale?.otherFees) || 0;
   const totalFees = cardFee + installmentFee + otherFees;
   const effectiveFeePct = cardBase ? (cardFee + installmentFee) / cardBase : 0;
 

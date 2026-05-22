@@ -8,7 +8,7 @@
  *
  * Use o VERSION abaixo como cache-buster a cada deploy significativo.
  */
-const VERSION = "tirzenix-v3-2026-05-22";
+const VERSION = "tirzenix-v4-2026-05-22-r2";
 
 self.addEventListener("install", (event) => {
   // Ativa o novo SW imediatamente, sem esperar abas antigas fecharem

@@ -90,55 +90,66 @@ export default function Vendas() {
     const q = query.trim().toLowerCase();
     const thisMonth = monthKey(todayISO());
     return sales.filter((s) => {
-      if (statusFilter && s.status !== statusFilter) return false;
-      if (quick === "thisMonth" && monthKey(s.date) !== thisMonth) return false;
-      if (quick === "paid" && s.status !== "Pago") return false;
-      if (quick === "pending" && s.status !== "Pendente" && s.status !== "Parcelado") return false;
-      if (quick === "card" && s.payment !== "Cartão Crédito") return false;
-      if (quick === "withSignal" && !s.signal?.amount) return false;
-      if (quick === "loss" && getSaleFinancials(s).netProfit >= 0) return false;
-      if (!q) return true;
-      return (
-        s.client.toLowerCase().includes(q) ||
-        s.product.toLowerCase().includes(q) ||
-        ((s as any).productVariant || "").toLowerCase().includes(q) ||
-        s.contact.toLowerCase().includes(q) ||
-        s.dosage.toLowerCase().includes(q)
-      );
+      try {
+        if (!s || !s.id) return false;
+        if (statusFilter && s.status !== statusFilter) return false;
+        if (quick === "thisMonth" && monthKey(s.date || "") !== thisMonth) return false;
+        if (quick === "paid" && s.status !== "Pago") return false;
+        if (quick === "pending" && s.status !== "Pendente" && s.status !== "Parcelado") return false;
+        if (quick === "card" && s.payment !== "Cartão Crédito") return false;
+        if (quick === "withSignal" && !s.signal?.amount) return false;
+        if (quick === "loss" && getSaleFinancials(s).netProfit >= 0) return false;
+        if (!q) return true;
+        return (
+          (s.client || "").toLowerCase().includes(q) ||
+          (s.product || "").toLowerCase().includes(q) ||
+          ((s as any).productVariant || "").toLowerCase().includes(q) ||
+          (s.contact || "").toLowerCase().includes(q) ||
+          (s.dosage || "").toLowerCase().includes(q)
+        );
+      } catch (err) {
+        console.warn("[Vendas] erro ao filtrar venda:", err, s);
+        return false;
+      }
     });
   }, [sales, query, statusFilter, quick]);
 
-  // Sort
+  // Sort — defensivo contra registros parcialmente formados
   const sorted = useMemo(() => {
     const arr = [...filtered];
     arr.sort((a, b) => {
-      const fa = getSaleFinancials(a);
-      const fb = getSaleFinancials(b);
-      let cmp = 0;
-      switch (sortBy) {
-        case "date":
-          cmp = a.date.localeCompare(b.date);
-          break;
-        case "client":
-          cmp = a.client.localeCompare(b.client, "pt-BR");
-          break;
-        case "product":
-          cmp = a.product.localeCompare(b.product, "pt-BR");
-          break;
-        case "gross":
-          cmp = fa.totalSale - fb.totalSale;
-          break;
-        case "net":
-          cmp = fa.netReceived - fb.netReceived;
-          break;
-        case "profit":
-          cmp = fa.netProfit - fb.netProfit;
-          break;
-        case "margin":
-          cmp = fa.netMargin - fb.netMargin;
-          break;
+      try {
+        const fa = getSaleFinancials(a);
+        const fb = getSaleFinancials(b);
+        let cmp = 0;
+        switch (sortBy) {
+          case "date":
+            cmp = (a.date || "").localeCompare(b.date || "");
+            break;
+          case "client":
+            cmp = (a.client || "").localeCompare(b.client || "", "pt-BR");
+            break;
+          case "product":
+            cmp = (a.product || "").localeCompare(b.product || "", "pt-BR");
+            break;
+          case "gross":
+            cmp = fa.totalSale - fb.totalSale;
+            break;
+          case "net":
+            cmp = fa.netReceived - fb.netReceived;
+            break;
+          case "profit":
+            cmp = fa.netProfit - fb.netProfit;
+            break;
+          case "margin":
+            cmp = fa.netMargin - fb.netMargin;
+            break;
+        }
+        return sortDir === "asc" ? cmp : -cmp;
+      } catch (err) {
+        console.warn("[Vendas] erro ao comparar vendas:", err, { a, b });
+        return 0;
       }
-      return sortDir === "asc" ? cmp : -cmp;
     });
     return arr;
   }, [filtered, sortBy, sortDir]);
